@@ -22,7 +22,6 @@ const eslintConfig = [
         asyncArrow: 'always'
       }],
       'func-call-spacing': ['error', 'never'],
-      curly: ['error', 'all'],
       eqeqeq: ['error', 'always'],
       'no-unused-vars': ['error', { vars: 'all', args: 'after-used', ignoreRestSiblings: true }],
       'no-var': 'error',
@@ -42,7 +41,8 @@ const eslintConfig = [
       'keyword-spacing': 'error',
       'comma-spacing': ['error', { before: false, after: true }],
       quotes: ['error', 'single'],
-      'jsx-quotes': ['error', 'prefer-single']
+      'jsx-quotes': ['error', 'prefer-single'],
+      '@typescript-eslint/no-empty-object-type': 'off'
     }
   }
 ]
