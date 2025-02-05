@@ -1,5 +1,6 @@
 import { Providers } from './providers'
 import { Poppins } from 'next/font/google'
+
 import './globals.css'
 
 import type { Metadata } from 'next'
@@ -18,7 +19,7 @@ export const metadata: Metadata = {
 export default function RootLayout ({ children }: Readonly<{children: ReactNode}>) {
   return (
     <html lang='en' className='dark'>
-      <body className={`${poppins.className} antialiased`}>
+      <body className={`${poppins.className} antialiased flex gap-8`}>
         <Providers>
           {children}
         </Providers>

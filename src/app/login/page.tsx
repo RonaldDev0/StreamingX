@@ -12,7 +12,7 @@ export default function Login () {
 
 
   return (
-    <main className='h-screen flex flex-col justify-center items-center'>
+    <main className='h-screen w-screen flex flex-col justify-center items-center'>
       <h1 className='font-bold text-4xl fixed top-56'>Streaming-X</h1>
       <button
         onClick={() => login()}
