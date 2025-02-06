@@ -45,13 +45,7 @@ export function Providers ({ children }: { children: ReactNode }) {
   }, [])
 
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((e) => {
-      if (e === 'SIGNED_IN') {
-        router.push('/')
-      } else if (e === 'SIGNED_OUT') {
-        router.push('/login')
-      }
-    })
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(() => router.refresh())
 
     return () => subscription.unsubscribe()
   }, [router, supabase])

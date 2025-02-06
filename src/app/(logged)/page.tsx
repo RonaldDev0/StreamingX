@@ -1,9 +1,18 @@
 'use client'
 import { VideoCard } from '@/components'
 import { useUser } from '@/store'
+import { useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 
 export default function HomePage () {
-  const { openSideBarr } = useUser()
+  const { user, openSideBarr } = useUser()
+  const router = useRouter()
+
+  useEffect(() => {
+    if (!user) return
+
+    router.push('/')
+  }, [user])
 
   return (
     <main className={`flex gap-4 flex-wrap mt-8 h-[900px] overflow-y-auto scrollbar-hide focus:outline-none focus:ring-0

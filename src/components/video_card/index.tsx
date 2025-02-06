@@ -36,13 +36,15 @@ export function VideoCard ({ title, id }: IProps) {
             />
           </div>
           <div className='ml-3 flex flex-col gap-2 h-full'>
-            <p className='font-bold text-sm text-white truncate'>{title}</p>
+            <p className='font-bold text-sm text-white truncate'>
+              {title}
+            </p>
             <p className='text-xs text-gray-400 truncate'>
               {user.user_name}
             </p>
             <div className='flex justify-between gap-4 text-xs text-gray-400'>
               <p>1.2M views</p>
-              <p>Hace 3 días</p>
+              <li>3 days ago</li>
             </div>
           </div>
         </div>
