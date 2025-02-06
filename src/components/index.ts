@@ -1,3 +1,3 @@
 export * from './sideBar'
 export * from './searchBar'
-export * from './video-card'
+export * from './video_card'
