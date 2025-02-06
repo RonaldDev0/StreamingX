@@ -19,7 +19,7 @@ export const metadata: Metadata = {
 export default function RootLayout ({ children }: Readonly<{children: ReactNode}>) {
   return (
     <html lang='en' className='dark'>
-      <body className={`${poppins.className} antialiased flex gap-8`}>
+      <body className={`${poppins.className} flex flex-row gap-8`}>
         <Providers>
           {children}
         </Providers>

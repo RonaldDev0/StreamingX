@@ -3,6 +3,7 @@ import { createContext, useContext, useEffect, useState, ReactNode } from 'react
 import { createPagesBrowserClient, type SupabaseClient } from '@supabase/auth-helpers-nextjs'
 import { useRouter } from 'next/navigation'
 import { useUser } from '@/store'
+import { HeroUIProvider } from '@heroui/react'
 
 type Database = {
   public: {
@@ -25,14 +26,10 @@ const Context = createContext<SupabaseContext | undefined>(undefined)
 export function Providers ({ children }: { children: ReactNode }) {
   const [supabase] = useState(() => createPagesBrowserClient())
   const router = useRouter()
-  const [code, setCode] = useState('')
   const { setStore } = useUser()
 
 
   useEffect(() => {
-    const searchParams = new URLSearchParams(window.location.search)
-    setCode(searchParams.get('code') || '')
-
     supabase.auth.getSession()
       .then(({ data: { session } }: any) => {
         if (session) {
@@ -49,7 +46,7 @@ export function Providers ({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((e) => {
-      if (e === 'SIGNED_IN' && code) {
+      if (e === 'SIGNED_IN') {
         router.push('/')
       } else if (e === 'SIGNED_OUT') {
         router.push('/login')
@@ -61,7 +58,9 @@ export function Providers ({ children }: { children: ReactNode }) {
 
   return (
     <Context.Provider value={{ supabase }}>
-      {children}
+      <HeroUIProvider>
+        {children}
+      </HeroUIProvider>
     </Context.Provider>
   )
 }
