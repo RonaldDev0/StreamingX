@@ -14,14 +14,14 @@ export function Brand () {
   return (
     <div className='relative w-full flex items-center gap-4 overflow-hidden'>
       <Menu size={30} className='cursor-pointer shrink-0' onClick={toggleOpenSideBarr} />
-      <div className='relative'>
+      <div className='relative flex items-center h-full'>
         <Link
           href='/'
-          className={`absolute left-0 top-1/2 -translate-y-1/2 transition-opacity duration-200 ${
+          className={`transition-opacity duration-200 whitespace-nowrap leading-normal ${
             openSideBarr ? 'opacity-100' : 'opacity-0 pointer-events-none'
           }`}
         >
-          <h1 className='text-neutral-400 text-3xl font-bold'>StreamingX</h1>
+          <h1 className='text-3xl font-bold mb-[5px]'>StreamingX</h1>
         </Link>
       </div>
     </div>

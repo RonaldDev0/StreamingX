@@ -18,7 +18,7 @@ export function VideoCard ({ title, id }: IProps) {
     <Link href={`/watch?v=${id}`}>
       <div className='flex flex-col cursor-pointer'>
         <div
-          className={`border-2 border-gray-600 border-opacity-20 rounded-xl flex justify-center items-center hover:border-opacity-90 transition-all
+          className={`border-2 bg-[#27272A] border-gray-600 border-opacity-20 rounded-xl flex justify-center items-center hover:border-opacity-90 transition-all
             ${openSideBarr ? 'w-[310px] h-[175px]' : 'w-[344px] h-[193px]'}`}
         >
           <Play size={30} />
