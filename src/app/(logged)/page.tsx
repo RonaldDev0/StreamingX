@@ -14,6 +14,7 @@ export default function HomePage () {
     router.push('/')
   }, [user])
 
+
   return (
     <main className={`flex gap-4 flex-wrap mt-8 h-[900px] overflow-y-auto scrollbar-hide focus:outline-none focus:ring-0
     ${!openSideBarr && 'ml-8'}`}>
