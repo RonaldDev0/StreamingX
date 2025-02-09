@@ -1,5 +1,5 @@
 'use client'
-import React, { useRef, useState, useEffect, useCallback, memo, useMemo } from 'react'
+import { useRef, useState, useEffect, useCallback, memo, useMemo } from 'react'
 import { Play, Pause, Maximize, Minimize, VolumeX, Volume, Volume1, Volume2 } from 'lucide-react'
 import { Slider } from '@heroui/react'
 

@@ -3,12 +3,16 @@ import { useState, useRef, useEffect } from 'react'
 import { Input, Textarea, Button, Card } from '@heroui/react'
 import { Cloud, Edit } from 'lucide-react'
 import Image from 'next/image'
+import { useUser } from '@/store'
 
 export default function UploadPage () {
+  const { user } = useUser()
+
   const [videoTitle, setVideoTitle] = useState('')
   const [videoDescription, setVideoDescription] = useState('')
   const [videoThumbnail, setVideoThumbnail] = useState<string | null>(null)
   const [videoFile, setVideoFile] = useState<File | null>(null)
+  const [uploading, setUploading] = useState(false)
   const videoRef = useRef<HTMLVideoElement | null>(null)
   const fileInputRef = useRef<HTMLInputElement | null>(null)
 
@@ -30,6 +34,9 @@ export default function UploadPage () {
         }
         setTimeout(() => {
           const canvas = document.createElement('canvas')
+          // Ajustamos las dimensiones del canvas según el tamaño del video
+          canvas.width = videoRef.current?.videoWidth || 526
+          canvas.height = videoRef.current?.videoHeight || 263
           const context = canvas.getContext('2d')
           if (context && videoRef.current) {
             context.drawImage(videoRef.current, 0, 0, canvas.width, canvas.height)
@@ -47,6 +54,32 @@ export default function UploadPage () {
     }
   }
 
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+    if (!videoFile) return
+
+    setUploading(true)
+
+    const formData = new FormData()
+    formData.append('file', videoFile)
+    formData.append('title', videoTitle)
+    formData.append('description', videoDescription)
+    formData.append('author', user?.id || 'null')
+
+    fetch('/api/upload', {
+      method: 'POST',
+      body: formData
+    })
+      .then(res => {
+        if (res.ok) {
+          alert('video subido!!')
+        } else {
+          alert('error al subir el video')
+        }
+        setUploading(false)
+      })
+  }
+
   useEffect(() => {
     return () => {
       if (videoRef.current) {
@@ -61,7 +94,8 @@ export default function UploadPage () {
         <h1 className='text-3xl font-bold text-center mb-6'>
           Upload Your Video
         </h1>
-        <form className='space-y-6'>
+        {/* Agregamos el onSubmit al formulario */}
+        <form className='space-y-6' onSubmit={handleSubmit}>
           <div>
             <div className='relative'>
               <div
@@ -108,14 +142,14 @@ export default function UploadPage () {
               id='videoTitle'
               type='text'
               value={videoTitle}
-              onChange={(e) => setVideoTitle(e.target.value)}
+              onChange={e => setVideoTitle(e.target.value)}
               placeholder='Enter your video title'
             />
             <Textarea
               label='Video Description'
               id='videoDescription'
               value={videoDescription}
-              onChange={(e) => setVideoDescription(e.target.value)}
+              onChange={e => setVideoDescription(e.target.value)}
               placeholder='Describe your video'
               rows={3}
             />
@@ -124,9 +158,10 @@ export default function UploadPage () {
             type='submit'
             color='primary'
             className='w-full'
+            disabled={uploading}
           >
             <Cloud size={18} className='mr-2' />
-            Upload Video
+            {uploading ? 'Subiendo...' : 'Upload Video'}
           </Button>
         </form>
       </Card>
