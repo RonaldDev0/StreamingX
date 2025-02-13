@@ -34,7 +34,7 @@ const SearchIcon = (props: any) => {
 export function SearchBarr () {
   return (
     <div className='bg-[#0a0a0a] h-16'>
-      <div className='fixed w-screen left-0 top-0 flex justify-center'>
+      <div className='fixed z-20 w-screen left-0 top-0 flex justify-center'>
         <Input
           isClearable
           classNames={{

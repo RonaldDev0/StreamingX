@@ -1,7 +1,7 @@
 'use client'
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, KeyboardEvent } from 'react'
 import { Input, Textarea, Button, Card } from '@heroui/react'
-import { Cloud, Edit } from 'lucide-react'
+import { Cloud, Clapperboard, X, ImageUp } from 'lucide-react'
 import Image from 'next/image'
 import { useUser } from '@/store'
 
@@ -11,16 +11,29 @@ export default function UploadPage () {
   const [videoTitle, setVideoTitle] = useState('')
   const [videoDescription, setVideoDescription] = useState('')
   const [videoThumbnail, setVideoThumbnail] = useState<string | null>(null)
+  const [customThumbnail, setCustomThumbnail] = useState<File | null>(null)
   const [videoFile, setVideoFile] = useState<File | null>(null)
   const [uploading, setUploading] = useState(false)
+  const [tags, setTags] = useState<string[]>([])
+  const [currentTag, setCurrentTag] = useState('')
   const videoRef = useRef<HTMLVideoElement | null>(null)
   const fileInputRef = useRef<HTMLInputElement | null>(null)
+  const thumbnailInputRef = useRef<HTMLInputElement | null>(null)
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.files) {
       const file = event.target.files[0]
       setVideoFile(file)
       generateThumbnail(file)
+    }
+  }
+
+  const handleThumbnailChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    if (event.target.files) {
+      const file = event.target.files[0]
+      setCustomThumbnail(file)
+      const objectUrl = URL.createObjectURL(file)
+      setVideoThumbnail(objectUrl)
     }
   }
 
@@ -34,7 +47,6 @@ export default function UploadPage () {
         }
         setTimeout(() => {
           const canvas = document.createElement('canvas')
-          // Ajustamos las dimensiones del canvas según el tamaño del video
           canvas.width = videoRef.current?.videoWidth || 526
           canvas.height = videoRef.current?.videoHeight || 263
           const context = canvas.getContext('2d')
@@ -54,6 +66,24 @@ export default function UploadPage () {
     }
   }
 
+  const handleReplaceThumbnail = () => {
+    if (thumbnailInputRef.current) {
+      thumbnailInputRef.current.click()
+    }
+  }
+
+  const handleTagKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
+    if ((e.key === ' ' || e.key === 'Enter') && currentTag.trim()) {
+      e.preventDefault()
+      setTags([...tags, currentTag.trim()])
+      setCurrentTag('')
+    }
+  }
+
+  const removeTag = (tagToRemove: string) => {
+    setTags(tags.filter(tag => tag !== tagToRemove))
+  }
+
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     if (!videoFile || !user?.id) return
@@ -65,8 +95,12 @@ export default function UploadPage () {
     formData.append('title', videoTitle)
     formData.append('description', videoDescription)
     formData.append('author', user.id)
-    formData.append('thumbnail', '')
-    formData.append('tags', '')
+    if (customThumbnail) {
+      formData.append('thumbnail', customThumbnail)
+    } else {
+      formData.append('thumbnail', videoThumbnail || '')
+    }
+    formData.append('tags', tags.join(','))
 
     fetch('/api/upload', {
       method: 'POST',
@@ -91,8 +125,8 @@ export default function UploadPage () {
   }, [])
 
   return (
-    <main className='flex justify-center items-center w-screen z-20 left-0 top-0 fixed h-screen'>
-      <Card className='w-full max-w-xl p-6'>
+    <main className='flex justify-center items-center w-screen z-10 left-0 top-0 fixed  h-screen'>
+      <Card className='w-full max-w-xl p-6 mt-16'>
         <h1 className='text-3xl font-bold text-center mb-6'>
           Upload Your Video
         </h1>
@@ -125,15 +159,31 @@ export default function UploadPage () {
               />
             </div>
             {videoFile && (
-              <div className='mt-2'>
+              <div className='mt-3 flex gap-2'>
                 <Button
                   type='button'
                   onPress={handleReplaceFile}
                   className='w-full'
                 >
-                  <Edit size={16} className='mr-2' />
+                  <Clapperboard size={25} className='mr-2' />
                   Replace Video
                 </Button>
+                <Button
+                  type='button'
+                  className='w-full'
+                  onPress={handleReplaceThumbnail}
+                >
+                  <ImageUp size={25} className='mr-2' />
+                  Select Custom Thumbnail
+                </Button>
+                <input
+                  ref={thumbnailInputRef}
+                  id='thumbnailFile'
+                  type='file'
+                  accept='image/*'
+                  onChange={handleThumbnailChange}
+                  className='hidden'
+                />
               </div>
             )}
           </div>
@@ -154,6 +204,27 @@ export default function UploadPage () {
               placeholder='Describe your video'
               rows={3}
             />
+            <div>
+              <label className='block text-sm font-medium text-gray-400'>Tags</label>
+              <div className='mt-1 flex flex-wrap gap-2'>
+                {tags.map((tag, index) => (
+                  <Card key={index} className='px-3 py-1 text-sm bg-[#313136]'>
+                    <div className='flex items-center'>
+                      <span className='mr-2'>{tag}</span>
+                      <X size={14} onClick={() => removeTag(tag)} />
+                    </div>
+                  </Card>
+                ))}
+                <Input
+                  type='text'
+                  value={currentTag}
+                  onChange={e => setCurrentTag(e.target.value)}
+                  onKeyDown={handleTagKeyDown}
+                  placeholder='Add a tag'
+                  className='flex-grow'
+                />
+              </div>
+            </div>
           </div>
           <Button
             type='submit'

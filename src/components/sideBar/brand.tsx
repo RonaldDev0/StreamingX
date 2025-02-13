@@ -12,8 +12,8 @@ export function Brand () {
   }
 
   return (
-    <div className='relative w-full flex items-center gap-4 overflow-hidden'>
-      <Menu size={30} className='cursor-pointer shrink-0' onClick={toggleOpenSideBarr} />
+    <div className='relative w-full flex items-center justify-ce gap-4 overflow-hidden'>
+      <Menu size={30} className={`cursor-pointer shrink-0 ${!openSideBarr && 'ml-[6px]'}`} onClick={toggleOpenSideBarr} />
       <div className='relative flex items-center h-full'>
         <Link
           href='/'

@@ -1,114 +1,121 @@
 import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3'
 import { NextRequest, NextResponse } from 'next/server'
 import ffmpeg from 'fluent-ffmpeg'
-import { writeFileSync, readFileSync, unlinkSync, mkdirSync } from 'fs'
+import { writeFileSync, readFileSync, unlinkSync, mkdirSync, existsSync } from 'fs'
 import path from 'path'
 import { randomUUID } from 'crypto'
 import { supabase } from '../supabase'
 
-// Function that wraps ffmpeg conversion in a Promise
 function convertToFaststart (inputPath: string, outputPath: string) {
   return new Promise<void>((resolve, reject) => {
     ffmpeg(inputPath)
-      .outputOptions([
-        '-c copy',
-        '-movflags faststart'
-      ])
+      .outputOptions(['-c copy', '-movflags faststart'])
       .output(outputPath)
-      .on('error', (err) => {
-        reject(err)
-      })
-      .on('end', () => {
-        resolve()
-      })
+      .on('error', (err) => reject(err))
+      .on('end', () => resolve())
       .run()
   })
 }
 
 const r2 = new S3Client({
   region: 'auto',
-  endpoint: process.env.R2_ENDPOINT,
+  endpoint: process.env.R2_ENDPOINT!,
   credentials: {
-    accessKeyId: process.env.R2_ACCESS_KEY_ID,
-    secretAccessKey: process.env.R2_SECRET_ACCESS_KEY
+    accessKeyId: process.env.R2_ACCESS_KEY_ID!,
+    secretAccessKey: process.env.R2_SECRET_ACCESS_KEY!
   }
-} as any)
+})
 
 export async function POST (req: NextRequest) {
   try {
     const form = await req.formData()
+    const file = form.get('file') as Blob
+    const title = form.get('title') as string
+    const description = form.get('description') as string
+    const author = form.get('author') as string
+    const thumbnailFile = form.get('thumbnail') as File | null
 
-    const file = form.get('file') as Blob | null
-    const title = form.get('title') as string | null
-    const description = form.get('description') as string | null
-    const author = form.get('author') as string | null
-
-    if (!file) return NextResponse.json({ error: 'No file uploaded' }, { status: 400 })
-    if (!title || !description || !author) {
-      return NextResponse.json({ error: 'No metadata uploaded' }, { status: 400 })
+    if (!file || !title || !description || !author) {
+      return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
     }
 
-    // Convert Blob to Buffer
-    const buffer = Buffer.from(await file.arrayBuffer())
-
-    // Define temporary routes
-    const tempDir = 'src/temps'
+    // Create temp directory
+    const tempDir = path.join(process.cwd(), 'public', 'temps')
     mkdirSync(tempDir, { recursive: true })
+
+    // File paths
     const inputFilePath = path.join(tempDir, 'input.mp4')
-    // We use another timestamp for the output (you could also base it on the same value)
     const outputFilePath = path.join(tempDir, 'output.mp4')
 
-    // Save the original file to disk
+    // Write input file
+    const buffer = Buffer.from(await file.arrayBuffer())
     writeFileSync(inputFilePath, buffer)
 
-    // Run faststart MP4 conversion
+    // Convert video
     await convertToFaststart(inputFilePath, outputFilePath)
 
-    // Read the converted file
+    // Verify conversion
+    if (!existsSync(outputFilePath)) {
+      throw new Error('FFmpeg conversion failed')
+    }
+
+    // Read output file
     const outputBuffer = readFileSync(outputFilePath)
     const randomName = randomUUID()
     const fileName = `${randomName}.mp4`
 
+    // Upload to R2
+    await r2.send(new PutObjectCommand({
+      Bucket: process.env.R2_BUCKET_NAME!,
+      Key: fileName,
+      Body: outputBuffer,
+      ContentType: 'video/mp4',
+      Metadata: { title, description, author }
+    }))
 
-    // Upload to Cloudflare R2
-    await r2.send(
-      new PutObjectCommand({
-        Bucket: process.env.R2_BUCKET_NAME,
-        Key: fileName,
-        Body: outputBuffer,
-        ContentType: 'video/mp4',
-        Metadata: {
-          title,
-          description,
-          author
-        }
-      })
-    )
-
-    // Clean temporary files
-    unlinkSync(inputFilePath)
-    unlinkSync(outputFilePath)
-
-    const thumbnail = supabase
-      .storage
-      .from('thumbnails')
-      .upload()
-      .then(({ url }) => url)
-
-    const duration = await new Promise((resolve, reject) => {
+    // Get duration BEFORE deleting files
+    const duration = await new Promise<number>((resolve, reject) => {
       ffmpeg.ffprobe(outputFilePath, (err, metadata) => {
-        if (err) return reject(err)
-        resolve(metadata.format.duration)
+        if (err || !metadata?.format?.duration) {
+          reject(err || new Error('Could not get duration'))
+        } else {
+          resolve(Math.round(metadata.format.duration))
+        }
       })
     })
 
-    const tags = (form.get('tags') || []).toString().split(/\s+/)
+    // Delete temp files
+    unlinkSync(inputFilePath)
+    unlinkSync(outputFilePath)
 
-    supabase
+    // Handle thumbnail
+    let thumbnailPath = null
+    if (thumbnailFile) {
+      const thumbnailBuffer = Buffer.from(await thumbnailFile.arrayBuffer())
+      const extension = thumbnailFile.name.split('.')[1]
+      const thumbnailName = `${randomName}.${extension}`
+
+      const { data, error } = await supabase
+        .storage
+        .from('thumbnails')
+        .upload(thumbnailName, thumbnailBuffer)
+
+      if (error || !data.path) {
+        console.error({ error, data })
+        return
+      }
+      thumbnailPath = data.path
+    }
+
+
+    // Insert to Supabase
+    const tags = (form.get('tags')?.toString() || '').split(/\s+/).filter(Boolean)
+
+    await supabase
       .from('videos')
       .insert({
         key: randomName,
-        thumbnail,
+        thumbnail: thumbnailPath,
         duration,
         author_id: author,
         title,
@@ -118,8 +125,12 @@ export async function POST (req: NextRequest) {
       })
 
     return NextResponse.json({ success: true, fileName })
+
   } catch (error) {
-    console.error(error)
-    return NextResponse.json({ error: 'Upload failed' }, { status: 500 })
+    console.error('Error in POST /api/upload:', error)
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : 'Upload failed' },
+      { status: 500 }
+    )
   }
 }

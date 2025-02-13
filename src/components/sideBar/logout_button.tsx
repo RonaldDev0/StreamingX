@@ -27,7 +27,7 @@ export function LogOutButton () {
         <LogOut
           size={30}
           onClick={singOut}
-          className='text-red-500 cursor-pointer'
+          className='text-red-500 cursor-pointer ml-2'
         />
       )
   )
