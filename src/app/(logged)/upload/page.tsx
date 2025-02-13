@@ -56,7 +56,7 @@ export default function UploadPage () {
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
-    if (!videoFile) return
+    if (!videoFile || !user?.id) return
 
     setUploading(true)
 
@@ -64,7 +64,9 @@ export default function UploadPage () {
     formData.append('file', videoFile)
     formData.append('title', videoTitle)
     formData.append('description', videoDescription)
-    formData.append('author', user?.id || 'null')
+    formData.append('author', user.id)
+    formData.append('thumbnail', '')
+    formData.append('tags', '')
 
     fetch('/api/upload', {
       method: 'POST',
@@ -94,7 +96,6 @@ export default function UploadPage () {
         <h1 className='text-3xl font-bold text-center mb-6'>
           Upload Your Video
         </h1>
-        {/* Agregamos el onSubmit al formulario */}
         <form className='space-y-6' onSubmit={handleSubmit}>
           <div>
             <div className='relative'>

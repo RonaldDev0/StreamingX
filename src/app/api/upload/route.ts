@@ -3,6 +3,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import ffmpeg from 'fluent-ffmpeg'
 import { writeFileSync, readFileSync, unlinkSync, mkdirSync } from 'fs'
 import path from 'path'
+import { randomUUID } from 'crypto'
+import { supabase } from '../supabase'
 
 // Function that wraps ffmpeg conversion in a Promise
 function convertToFaststart (inputPath: string, outputPath: string) {
@@ -52,9 +54,9 @@ export async function POST (req: NextRequest) {
     // Define temporary routes
     const tempDir = 'src/temps'
     mkdirSync(tempDir, { recursive: true })
-    const inputFilePath = path.join(tempDir, `${Date.now()}_input.mp4`)
+    const inputFilePath = path.join(tempDir, 'input.mp4')
     // We use another timestamp for the output (you could also base it on the same value)
-    const outputFilePath = path.join(tempDir, `${Date.now()}_faststart.mp4`)
+    const outputFilePath = path.join(tempDir, 'output.mp4')
 
     // Save the original file to disk
     writeFileSync(inputFilePath, buffer)
@@ -64,7 +66,9 @@ export async function POST (req: NextRequest) {
 
     // Read the converted file
     const outputBuffer = readFileSync(outputFilePath)
-    const fileName = `${Date.now().toString()}.mp4`
+    const randomName = randomUUID()
+    const fileName = `${randomName}.mp4`
+
 
     // Upload to Cloudflare R2
     await r2.send(
@@ -84,6 +88,34 @@ export async function POST (req: NextRequest) {
     // Clean temporary files
     unlinkSync(inputFilePath)
     unlinkSync(outputFilePath)
+
+    const thumbnail = supabase
+      .storage
+      .from('thumbnails')
+      .upload()
+      .then(({ url }) => url)
+
+    const duration = await new Promise((resolve, reject) => {
+      ffmpeg.ffprobe(outputFilePath, (err, metadata) => {
+        if (err) return reject(err)
+        resolve(metadata.format.duration)
+      })
+    })
+
+    const tags = (form.get('tags') || []).toString().split(/\s+/)
+
+    supabase
+      .from('videos')
+      .insert({
+        key: randomName,
+        thumbnail,
+        duration,
+        author_id: author,
+        title,
+        description,
+        tags,
+        status: 'published'
+      })
 
     return NextResponse.json({ success: true, fileName })
   } catch (error) {
