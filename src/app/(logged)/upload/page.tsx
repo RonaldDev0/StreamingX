@@ -211,7 +211,11 @@ export default function UploadPage () {
                   <Card key={index} className='px-3 py-1 text-sm bg-[#313136]'>
                     <div className='flex items-center'>
                       <span className='mr-2'>{tag}</span>
-                      <X size={14} onClick={() => removeTag(tag)} />
+                      <X
+                        size={14}
+                        onClick={() => removeTag(tag)}
+                        className='cursor-pointer'
+                      />
                     </div>
                   </Card>
                 ))}
