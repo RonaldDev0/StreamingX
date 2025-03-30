@@ -1,8 +1,9 @@
 'use client'
 import { Brand } from './brand'
 import { LogOutButton } from './logout_button'
+import { LoginButton } from './login_button'
 import { useUser } from '@/store'
-import { Home, Upload } from 'lucide-react'
+import { Home, Upload, UserRound } from 'lucide-react'
 import Link from 'next/link'
 
 type Iitems = {
@@ -18,6 +19,11 @@ const items: Iitems = [
     url: '/'
   },
   {
+    icon: <UserRound />,
+    label: 'Profile',
+    url: '/profile'
+  },
+  {
     icon: <Upload />,
     label: 'upload',
     url: '/upload'
@@ -25,12 +31,12 @@ const items: Iitems = [
 ]
 
 export function SideBar () {
-  const { openSideBarr } = useUser()
+  const { openSideBarr, user } = useUser()
 
   return (
     <div className={`h-screen ${openSideBarr ? 'w-[323px]' : 'w-[70px]'}`}>
       <div
-        className={`border-r-2 border-gray-600 border-opacity-20 h-screen flex flex-col justify-between transition-width bg-neutral-900 fixed z-50
+        className={`border-r-2 border-gray-600 border-opacity-20 h-screen flex flex-col justify-between transition-width bg-neutral-900 fixed z-40
           ${openSideBarr ? 'w-[270px]' : 'w-[70px]'} p-3 gap-3`}
       >
         <Brand />
@@ -50,7 +56,11 @@ export function SideBar () {
             </Link>
           ))}
         </div>
-        <LogOutButton />
+        {
+          user
+            ? <LogOutButton />
+            : <LoginButton />
+        }
       </div>
     </div>
   )

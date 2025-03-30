@@ -1,6 +1,8 @@
 import { Providers } from './providers'
 import { Poppins } from 'next/font/google'
 
+import { SideBar, SearchBarr } from '@/components'
+
 import './globals.css'
 
 import type { Metadata } from 'next'
@@ -21,7 +23,14 @@ export default function RootLayout ({ children }: Readonly<{children: ReactNode}
     <html lang='en' className='dark'>
       <body className={`${poppins.className} flex flex-row gap-8`}>
         <Providers>
-          {children}
+          <div className='flex w-screen gap-4'>
+            <SideBar />
+            <div className='flex flex-col items-center justify-start w-full'>
+              <div className='w-[14dvw]' />
+              <SearchBarr />
+              {children}
+            </div>
+          </div>
         </Providers>
       </body>
     </html>

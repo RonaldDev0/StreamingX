@@ -1,7 +1,7 @@
 'use client'
 import Link from 'next/link'
 import { useUser } from '@/store'
-import Image from 'next/image'
+import { Avatar } from '@heroui/react'
 import { Play } from 'lucide-react'
 
 type IProps = {
@@ -10,9 +10,7 @@ type IProps = {
 }
 
 export function VideoCard ({ title, id }: IProps) {
-  const { openSideBarr, user } = useUser()
-
-  if (!user) return null
+  const { openSideBarr } = useUser()
 
   return (
     <Link href={`/watch?v=${id}`}>
@@ -27,20 +25,14 @@ export function VideoCard ({ title, id }: IProps) {
           className={`mt-2 flex h-[100px] ${openSideBarr ? 'w-[300px]' : 'w-[334px]'} pl-4`}
         >
           <div className='flex-shrink-0'>
-            <Image
-              width={40}
-              height={40}
-              src={user.avatar}
-              alt='Avatar del canal'
-              className='rounded-full bg-neutral-400 p-[2px]'
-            />
+            <Avatar name='Creator' />
           </div>
           <div className='ml-3 flex flex-col gap-2 h-full'>
             <p className='font-bold text-sm text-white truncate'>
               {title}
             </p>
             <p className='text-xs text-gray-400 truncate'>
-              {user.user_name}
+              Creator
             </p>
             <div className='flex justify-between gap-4 text-xs text-gray-400'>
               <p>1.2M views</p>

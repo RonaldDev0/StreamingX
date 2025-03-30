@@ -1,5 +1,5 @@
 import { Button } from '@heroui/react'
-import { ThumbsUp, Share2, ThumbsDown } from 'lucide-react'
+import { ThumbsUp, ThumbsDown } from 'lucide-react'
 
 export function Actions () {
   return (
@@ -9,9 +9,6 @@ export function Actions () {
       </Button>
       <Button className='flex items-center gap-2'>
         <ThumbsDown size={16} /> 500
-      </Button>
-      <Button className='flex items-center gap-2'>
-        <Share2 size={16} /> Share
       </Button>
     </div>
   )

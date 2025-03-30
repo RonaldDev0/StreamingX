@@ -14,7 +14,7 @@ export async function middleware (req: NextRequest) {
     return NextResponse.redirect(new URL('/', req.url))
   }
 
-  if (!session && pathname !== '/login' && pathname !== '/install') {
+  if (!session && ['/profile', '/upload'].includes(pathname)) {
     return NextResponse.redirect(new URL('/login', req.url))
   }
 
