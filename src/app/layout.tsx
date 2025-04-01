@@ -15,7 +15,48 @@ const poppins = Poppins({
 
 export const metadata: Metadata = {
   title: 'StreamingX',
-  description: 'Explora contenido optimizado en streaming con tecnología avanzada. ¡El futuro del streaming está aquí!'
+  description: 'Streaming platform',
+  metadataBase: new URL('https://streaming-x.vercel.app/'),
+  openGraph: {
+    title: 'StreamingX',
+    description: 'Streaming platform',
+    url: 'https://streaming-x.vercel.app/',
+    siteName: 'Ronald Zamora | Software Developer',
+    images: [
+      {
+        url: 'https://streaming-x.vercel.app/preview.webp',
+        width: 1200,
+        height: 630,
+        alt: 'StreamingX'
+      }
+    ],
+    type: 'website',
+    locale: 'en_US'
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'StreamingX',
+    description: 'Streaming platform',
+    creator: '@RonaldDev0',
+    images: ['https://streaming-x.vercel.app/preview.webp']
+  },
+  authors: [{ name: 'Ronald Zamora', url: 'https://streaming-x.vercel.app/' }],
+  keywords: [
+    'StreamingX',
+    'Streaming',
+    'Netflix',
+    'Disney+',
+    'Hulu',
+    'Amazon Prime Video',
+    'YouTube',
+    'Movies',
+    'Series',
+    'Anime',
+    'Documentaries',
+    'Kids',
+    'Music',
+    'TV Shows'
+  ]
 }
 
 export default function RootLayout ({ children }: Readonly<{children: ReactNode}>) {

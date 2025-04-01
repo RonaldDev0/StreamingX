@@ -38,7 +38,7 @@ export default function Login () {
           height='45'
         />
         <p>
-          Continuar con Github
+          Continue with Github
         </p>
       </Button>
     </main>
